@@ -5,16 +5,16 @@ namespace SimpleDI
 {
     public class FunctionResolver : IDIResolver
     {
-        private Func<object> func;
+        private Func<object> _func;
     
         public FunctionResolver(Func<object> func)
         {
-            this.func = func;
+            this._func = func;
         }
     
         public object Resolve()
         {
-            return func();
+            return _func();
         }
     }
 }

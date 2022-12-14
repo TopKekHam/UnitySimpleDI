@@ -7,7 +7,7 @@ namespace SimpleDI
 {
     public static class DIUtils
     {
-        static Type[] genericFuncs = new Type[]
+        static Type[] s_genericFuncs = new Type[]
         {
             typeof(Func<>),
             typeof(Func<,>),
@@ -105,12 +105,12 @@ namespace SimpleDI
             Array.Copy(args, allTypes, args.Length);
             allTypes[^1] = returnType;
 
-            return genericFuncs[allTypes.Length - 1].MakeGenericType(allTypes);
+            return s_genericFuncs[allTypes.Length - 1].MakeGenericType(allTypes);
         }
 
         public static Type CreateGenericFuncType(params Type[] types)
         {
-            return genericFuncs[types.Length].MakeGenericType(types);
+            return s_genericFuncs[types.Length].MakeGenericType(types);
         }
 
         public static Delegate CreateConstructorFunction(Type resolveType, Type[] constructorParams,

@@ -7,6 +7,8 @@ using UnityEngine.SceneManagement;
 
 namespace SimpleDI
 {
+
+    [DefaultExecutionOrder(-99999)]
     public class DIContainer : MonoBehaviour
     {
         public static readonly Type s_injectAttributeType = typeof(InjectAttribute);
@@ -196,19 +198,25 @@ namespace SimpleDI
             BindResolver(type, resolver);
         }
 
-        public void BindFunction<T>(Func<object> func)
-        {
-            var type = typeof(T);
-            BindResolver(type, new FunctionResolver(func));
-        }
-
         public void BindFunction(Type typeToResolve, Func<object> func)
         {
             BindResolver(typeToResolve, new FunctionResolver(func));
         }
 
+        public void BindFunction<T>(Func<object> func)
+        {
+            var type = typeof(T);
+            BindResolver(type, new FunctionResolver(func));
+        }
+        
         public void BindSingleton(Type type, object instance, bool injected = false)
         {
+            BindResolver(type, new SingletonResolver(instance, this, injected));
+        }
+        
+        public void BindSingleton<T>(T instance, bool injected = false)
+        {
+            var type = typeof(T);
             BindResolver(type, new SingletonResolver(instance, this, injected));
         }
         
@@ -216,30 +224,34 @@ namespace SimpleDI
         {
             var type = typeof(T);
             BindResolver(type, new SingletonResolver(type, this));
-        } 
-        
-        public void BindSingleton<T>(T instance)
-        {
-            var type = typeof(T);
-            BindResolver(type, new SingletonResolver(instance, this));
         }
-        
+
         public void BindSingleton<TInterface, TConcrete>() where TConcrete : TInterface
         {
             BindResolver<TInterface>(new SingletonResolver(typeof(TConcrete), this));
         }
         
-        public void BindConstructor<TArg1, TConstructor>()
+        public void BindConstructor<TConstructor, TArg1>()
         {
             BindConstructor(typeof(TConstructor), typeof(TArg1));
         }
-
+        
+        public void BindConstructor<TConstructor, TArg1, TArg2>()
+        {
+            BindConstructor(typeof(TConstructor), typeof(TArg1), typeof(TArg2));
+        }
+        
+        public void BindConstructor<TConstructor, TArg1, TArg2, TArg3>()
+        {
+            BindConstructor(typeof(TConstructor), typeof(TArg1), typeof(TArg2), typeof(TArg3));
+        }
+        
         public void BindConstructor<TConstructor>()
         {
             BindConstructor(typeof(TConstructor));
         }
 
-        public void BindConstructor(Type resolveType, params Type[] constructorParams)
+        void BindConstructor(Type resolveType, params Type[] constructorParams)
         {
             var constructor = resolveType.GetConstructor(constructorParams);
 

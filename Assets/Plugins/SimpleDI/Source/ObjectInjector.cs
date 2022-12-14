@@ -8,34 +8,34 @@ namespace SimpleDI
 
     public interface IFieldInjector
     {
-        public Type type { get; }
+        public Type Type { get; }
         public void Inject(object obj, object value);
     }
 
     public class InjectableField<T, TArg> : IFieldInjector
     {
 
-        public Type type { get; }
-        public Func<T, TArg, TArg> setValue;
+        public Type Type { get; }
+        public Func<T, TArg, TArg> SetValue;
 
         public InjectableField(Type fieldType, Func<T, TArg, TArg> setValue)
         {
-            this.type = fieldType;
-            this.setValue = setValue;
+            this.Type = fieldType;
+            this.SetValue = setValue;
         }
 
         public void Inject(object obj, object value)
         {
-            setValue((T)obj, (TArg)value);
+            SetValue((T)obj, (TArg)value);
         }
     }
 
     public class ObjectInjector
     {
-        private List<IFieldInjector> fieldsToInject = new List<IFieldInjector>();
-
-        private static Type InjectAttributeType = typeof(InjectAttribute);
-        private static Type InjectableFieldType = typeof(InjectableField<,>);
+        private List<IFieldInjector> _fieldInjectors = new List<IFieldInjector>();
+        
+        private static Type s_injectAttributeType = typeof(InjectAttribute);
+        private static Type s_injectableFieldType = typeof(InjectableField<,>);
 
         public ObjectInjector(Type type)
         {
@@ -44,27 +44,27 @@ namespace SimpleDI
             for (int i = 0; i < fields.Length; i++)
             {
                 var field = fields[i];
-                var attr = field.GetCustomAttribute(InjectAttributeType);
+                var attr = field.GetCustomAttribute(s_injectAttributeType);
 
                 if (attr != null)
                 {
                     var setDelegate = DIUtils.CreateSetFieldFunction(type, field);
 
-                    var injectorType = InjectableFieldType.MakeGenericType(type, field.FieldType);
+                    var injectorType = s_injectableFieldType.MakeGenericType(type, field.FieldType);
 
                     var fieldInjector = (IFieldInjector)Activator.CreateInstance(injectorType, new object[] { field.FieldType, setDelegate }); 
-                    fieldsToInject.Add(fieldInjector);
+                    _fieldInjectors.Add(fieldInjector);
                 }
             }
         }
 
         public void Inject(object obj, DIContainer container)
         {
-            for (int i = 0; i < fieldsToInject.Count; i++)
+            for (int i = 0; i < _fieldInjectors.Count; i++)
             {
-                var injectable = fieldsToInject[i];
+                var injectable = _fieldInjectors[i];
                 
-                var instance = container.Resolve(injectable.type);
+                var instance = container.Resolve(injectable.Type);
 
                 injectable.Inject(obj, instance);
             }
